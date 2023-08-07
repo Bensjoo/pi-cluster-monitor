@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "monitor"
+version = "0.1.0"
+description = ""
+authors = ["Bengt Sjögren <Bengan92@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+prometheus-client = "^0.17.1"
+psutil = "^5.9.5"
+influxdb3-python = "^0.2.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
