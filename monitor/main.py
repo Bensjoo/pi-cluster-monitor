@@ -1,10 +1,13 @@
 import time
 
-from influxdb_client_3 import InfluxDBClient3, Point
+from influxdb_client_3 import InfluxDBClient3
 
 from probe import Probe
 from config import Config
+import logging
 
+
+logging.basicConfig(level=logging.INFO)
 
 # get conf params
 conf = Config()
@@ -13,32 +16,30 @@ conf = Config()
 influx_client = InfluxDBClient3(
     host=conf.influx_url,
     token=conf.influx_token,
-    org=conf.influx_org
+    database=conf.influx_bucket,
+    org=conf.influx_org,
 )
 
-probe = Probe(conf.hostname)
+# create probe instance
+probe = Probe(conf.hostname, conf.env)
 
 
+# depending on run mode, fetch one value or run continuously
 def run_scraper():
+    logging.info('Starting metrics monitoring')
+    logging.info(f'influx url: f{conf.influx_url}')
+
     while True:
-        # scrape data
         data = probe.fetch()
-        
+
         if conf.influx_url:
-            point = (
-                Point(conf.influx_measurement_name)
-                .tag("host", data['hostname'])
-                .field()
-            )
-
-
-        # only run one post if not in live mode
+            influx_client.write(data)
         if conf.env == 'prod':
             time.sleep(conf.sample_interval)
         else:
             break
-    pass
 
 
 if __name__ == '__main__':
     print('hello')
+    run_scraper()

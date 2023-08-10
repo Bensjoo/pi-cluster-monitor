@@ -1,5 +1,4 @@
 import psutil
-import time
 
 
 def to_gb(bytes):
@@ -16,31 +15,55 @@ class Probe:
         memory_metrics = psutil.virtual_memory()
         disk_metrics = psutil.disk_usage('/')
 
-        measurements = {
-            'ts': int(time.time()),
+        # add measurement fields
+        measurements = [
+            {
+                'measurement': 'cpu',
+                'fields': {
+                    'core_count': psutil.cpu_count(),
+                    'usage_pct': psutil.cpu_percent(),
+                },
+            },
+            {
+                'measurement': 'memory',
+                'fields': {
+                    'total_gb': to_gb(memory_metrics.total),
+                    'memory_usage_pct': memory_metrics.percent,
+                },
+            },
+            {
+                'measurement': 'disk',
+                'fields': {
+                    'total_gb': to_gb(disk_metrics.total),
+                    'avail_gb': to_gb(disk_metrics.free),
+                    'used_gb': to_gb(disk_metrics.used),
 
-            'cpu_tot': psutil.cpu_count(),
-            'cpu_usage_pct': psutil.cpu_percent(),
-
-            'memory_tot_gb': to_gb(memory_metrics.total),
-            'memory_usage_pct': memory_metrics.percent,
-
-            'disk_tot_gb': to_gb(disk_metrics.total),
-            'disk_avail_gb': to_gb(disk_metrics.free),
-            'disk_used_gb': to_gb(disk_metrics.used)
-        }
+                },
+            },
+        ]
 
         # we can fetch temps if on raspberry pi
-        if self.mode in 'prod':
+        if self.mode == 'prod':
             temp_metrics = psutil.sensors_temperatures()
-            measurements['temp_cpu_c'] = round(
-                temp_metrics.get('cpu_thermal', {})[0].current, 1)
+            cpu_temp_c = round(
+                temp_metrics.get('cpu_thermal', {})[0].current,
+                1
+            )
+            measurements.append(
+                {
+                    'measurement': 'temp',
+                    'fields': {
+                        'cpu_c': cpu_temp_c,
+                    },
+                },
+            )
 
-        # append metadata
-        return {
-            'hostname': self.hostname,
-            'measurements': measurements,
-        }
+        # add hostname as tags
+        measurements = [
+            {**meas_dict, 'tags': {'hostname': self.hostname}}
+            for meas_dict in measurements
+        ]
+        return measurements
 
 
 if __name__ == '__main__':
