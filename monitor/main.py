@@ -27,7 +27,7 @@ probe = Probe(conf.hostname, conf.env)
 # depending on run mode, fetch one value or run continuously
 def run_scraper():
     logging.info('Starting metrics monitoring')
-    logging.info(f'influx url: f{conf.influx_url}')
+    logging.info(f'influx url: {conf.influx_url}')
 
     while True:
         data = probe.fetch()

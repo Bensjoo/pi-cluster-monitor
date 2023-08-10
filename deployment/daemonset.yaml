@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: pi-hw-monitor-daemonset
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: pi-hw-monitor
+  template:
+    metadata:
+      labels:
+        app: pi-hw-monitor
+    spec:
+      containers:
+      - name: pi-hw-monitor-container
+        image: bengan/pi-hardware-monitor:0.3-slim
+        #command: ["/bin/bash", "-c"] # debug
+        #args: ["sleep 3600"] # debug
+        envFrom:
+        - secretRef:
+            name: pi-hw-monitor
+        env:
+        - name: HOST_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName

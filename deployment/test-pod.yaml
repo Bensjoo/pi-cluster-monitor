@@ -6,6 +6,6 @@ metadata:
 spec:
   containers:
   - name: python-container
-    image: bengan/pi-hardware-monitor:0.2-slim
+    image: bengan/pi-hardware-monitor:0.3-slim
     command: ["/bin/bash", "-c", "sleep 3600"]
     # args: ["print('Hello, Kubernetes!')"]
