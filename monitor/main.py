@@ -1,7 +1,7 @@
 import time
 
-from influxdb_client_3 import InfluxDBClient3
-
+from influxdb_client import InfluxDBClient
+from influxdb_client.client.write_api import SYNCHRONOUS
 from probe import Probe
 from config import Config
 import logging
@@ -13,12 +13,11 @@ logging.basicConfig(level=logging.INFO)
 conf = Config()
 
 # setup InfluxDB client
-influx_client = InfluxDBClient3(
-    host=conf.influx_url,
+influx_client = InfluxDBClient(
+    url=conf.influx_url,
     token=conf.influx_token,
-    database=conf.influx_bucket,
-    org=conf.influx_org,
 )
+write_api = influx_client.write_api(write_options=SYNCHRONOUS)
 
 # create probe instance
 probe = Probe(conf.hostname, conf.env)
@@ -33,7 +32,7 @@ def run_scraper():
         data = probe.fetch()
 
         if conf.influx_url:
-            influx_client.write(data)
+            write_api.write('hardware-metrics', 'vandelay', data)
         if conf.env == 'prod':
             time.sleep(conf.sample_interval)
         else:
@@ -41,5 +40,4 @@ def run_scraper():
 
 
 if __name__ == '__main__':
-    print('hello')
     run_scraper()
