@@ -1,3 +1,4 @@
 __pycache__*
 .DS_store
 deployment/secret.yaml
+deployment/secret-v2.yaml
